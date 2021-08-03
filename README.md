@@ -6,7 +6,8 @@
 ### Installation
 
 ``` r
-devtools::install_github("idasomm/genRCT")
+devtools::install_github("idasomm/genRCT", 
+                         auth_token = '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')
 ```
 
 ### Usage
@@ -52,202 +53,66 @@ library(genRCT)
 
 ### Example
 
-``` 
+``` r
 
 library(genRCT)
-library(data.table)
-library(nleqslv)
-library(ncvreg)
-library(MASS)
-library(Matrix)
-library(kableExtra)
 library(tidyverse)
+#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+#> ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+#> ✓ tibble  3.1.0     ✓ dplyr   1.0.5
+#> ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+#> ✓ readr   1.4.0     ✓ forcats 0.5.1
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> x dplyr::filter() masks stats::filter()
+#> x dplyr::lag()    masks stats::lag()
+library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> The following objects are masked from 'package:dplyr':
+#> 
+#>     between, first, last
+#> The following object is masked from 'package:purrr':
+#> 
+#>     transpose
 
-# Data generating functions
+data("simulData")
 
-'outcome_mod_lognorm' <- function(X,A,sigma = 0.25){
-  n <- length(A)
-  return( -100 + 27.4*X[,3]*A + 13.7*X[,4] + 5*X[,4]*A + exp(sigma*rnorm(n)))
-}
+data.trial <- simulData %>% dplyr::filter(delta == 1)
+data.rwe <- simulData %>% dplyr::filter(delta == 0)
 
-'outcome_mod' <- function(X,A){
-  expit(1 - 2*A*X[,3] - X[,3] - 0.5*A*X[,4] + X[,4])
-}
+Y.trial <- as.vector(data.trial %>% dplyr::select(Y))
+A.trial <- as.vector(data.trial %>% dplyr::select(A))
+X.trial <- data.trial %>% dplyr::select(X1:X5)
 
-'sample_prop' <- function(X,beta = 2){
-  #tmp <- -beta + 0.5*X[,1] + 0.3*X[,2] - 0.5*X[,3] -0.4* X[,4]
-  exp(-beta + X[,1] + 0.6*X[,2] - 0.5*X[,3])
-}
+Y.rwe <- as.vector(data.rwe %>% dplyr::select(Y))
+A.rwe <- as.vector(data.rwe %>% dplyr::select(A))
+X.rwe <- data.rwe %>% dplyr::select(X1:X5)
 
-
-'trt_prop' <- function(X){
-  expit(-X[,1] + 0.4*X[,2] - 0.25*X[,3] - 0.1*X[,4])
-}
-
-
-'gen_Z' <- function(X){
-  z1 <- exp(X[,1]/2)
-  z2 <- (X[,1]+X[,4]+20)^2
-  z3 <- X[,2]/(1+2*exp(X[,3]))
-  #z3 <- (X[,1]*X[,3]/2 + 2)^3
-  z4 <- (X[,2]+X[,5]+20)^2
-  return(cbind(z1,z2,z3,z4))
-}
-
-
-
-######################
-#  gaussian outcome  #
-######################
-
-
-p <- 4
-n.p <- 2000
-n <- 2e4 ## population size
-n2 <-2e5 ## population size
-
-beta0 <-5.3
-
-## Generating data
-set.seed(12345)
-X <- matrix(rnorm(n*p,1,1),ncol = p)
-X <- scale(X) + 1
-eS <- sample_prop(X, beta0)
-
-#print(sum(eS>=1))
-eS[eS>=1] = 0.99
-S <- sapply(eS,rbinom,n = 1, size = 1)
-S.ind <- which(S==1)
-
-##--------------------------------------------------------------------
-## RCT data
-n.t <- length(S.ind)
-X.t <- X[S.ind,]
-A.t <- rbinom(n.t,1,0.5) # randomly assign treatment to trial participant
-
-## Real world data
-X <- matrix(rnorm(n2*p,1,0.5),ncol = p)
-X <- scale(X) + 1
-P.ind <- sample(1:n2,size = n.p) ## RWD id
-X.p <- X[P.ind,]
-eA <- trt_prop(X.p) # treatment propensity score
-A.p <- sapply(eA,rbinom,n=1,size=1)
-
-# Outcomes
-Y.t <- outcome_mod_lognorm(X.t,A.t)
-Y.p <- outcome_mod_lognorm(X.p,A.p)
-
-
-eta.vec <- c(0,0.005,0.01,0.02,0.03,0.05)
-B <- 50
-fit.gaussian <- genRCT(X.t, X.p, A.t, A.p, Y.t, Y.p, family = 'gaussian', SBW.est = 'SBW-1', eta.vec = eta.vec, select.iter = 5, select.fix = TRUE, B = B, 
-                       conf.level = 0.05, seed = NULL, boot.progress = 'number')
-fit.gaussian
-
-
-#####################
-#  binary outcome  #
-#####################
-
-p <- 4
-n.p <- 2000
-n <- 2e4 ## population size
-n2 <-2e5 ## population size
-
-beta0 <- 5.3
-
-## Generating data
-set.seed(12345)
-X <- matrix(rnorm(n*p,1,1),ncol = p)
-X <- scale(X) + 1
-eS <- sample_prop(X, beta0)
-
-#print(sum(eS>=1))
-eS[eS>=1] = 0.99
-S <- sapply(eS,rbinom,n = 1, size = 1)
-S.ind <- which(S==1)
-
-##--------------------------------------------------------------------
-## RCT data
-n.t <- length(S.ind)
-X.t <- X[S.ind,]
-A.t <- rbinom(n.t,1,0.5) # randomly assign treatment to trial participant
-
-## Real world data
-X <- matrix(rnorm(n2*p,1,0.5),ncol = p)
-X <- scale(X) + 1
-P.ind <- sample(1:n2,size = n.p) ## RWD id
-X.p <- X[P.ind,]
-eA <- trt_prop(X.p) # treatment propensity score
-A.p <- sapply(eA,rbinom,n=1,size=1)
-
-
-# Outcomes
-eY <- outcome_mod(X.t,A.t)
-Y.t <- sapply(eY,rbinom,n = 1, size = 1)
-eY <- outcome_mod(X.p,A.p)
-Y.p <- sapply(eY,rbinom,n = 1, size = 1)
-
-eta.vec <- c(0,0.005,0.01,0.02,0.03,0.05)
-B <- 50
-fit.binom <- genRCT(X.t, X.p, A.t, A.p, Y.t, Y.p, family = 'binomial', SBW.est = 'SBW-1', eta.vec = eta.vec, select.iter = 5, select.fix = TRUE, B = B, 
-                    conf.level = 0.05, seed = NULL, boot.progress = 'number')
-fit.binom
+fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe, family = "gaussian",
+              estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
+              inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 12345, plot.boot = TRUE, verbose = FALSE)
+#>  Fitting estimators..
 ```
 
-Estimators
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
-  - Naive : the difference in sample means of the two treatment groups
-    in the RCT sample
+    #> Total runtime : 5.421487 mins
+    
+    fit$fit
+    #>            ATE         SE      2.5%    97.5%
+    #> Naive 50.31553  2.4868271 45.342828 55.36317
+    #> IPSW  35.69669  8.1734416 19.479857 49.27143
+    #> AIPSW 26.63354  0.6464247 25.283526 27.78797
+    #> CW    27.74951 14.7089762  1.937296 52.01549
+    #> ACW-t 26.88160  0.7517235 25.197760 28.06301
+    #> ACW-b 27.57737  0.7093065 25.914611 28.65249
+    
+    truth <- 27.4
+    fit$plot + geom_vline(xintercept = truth, color = 'blue', linetype = "dashed", show.legend = T)
 
-  - IPSW: the IPSW estimator
+<img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" /> The
+red solid lines represent the estimated ATEs and the blue dashed lines
+represent the true ATE. The differences are
 
-  - AIPSW: the AIPSW estimator
-
-  - AIPSW(S) : the AIPSW estimator using the method of Sieves with
-    \(g\)(X) = \(g_2\)(X) (SCAD method separately for \(\mu_a(X)\) and
-    \(\pi_{\delta}(X)\)). The nuisance functions \(\mu_a(X), a=0, 1\)
-    are estimated based on the trial sample
-
-  - SBW-1 : SBW balancing means of all the original covariates
-
-  - SBW-2 : SBW balancing means and decile indicators of the original
-    covariates
-
-  - SBW-3 : SBW balancing means of all original covariates and their
-    squares and two-way interactions
-
-SBW weights (Chattopadhyay et al. (2019)) for ATT (treatment : RWD,
-control group : RCT) were first estimated using SBW-1, SBW-2, SBW-3
-methods, and then plugged in to calculate IPSW.
-
-  - CW: the CW estimator defined by with \(g\)(X) = \(g_1\)(X)
-
-  - ACW-t: the ACW estimator defined by with \(g\)(X) = \(g_1\)(X) and
-    the nuisance functions \(\mu_a(X), a=0, 1\) are estimated based on
-    the trial sample
-
-  - ACW-t(S): the penalized ACW-t estimator using the method of Sieves
-    with \(g\)(X) = \(g_2\)(X) (“S” stands for method of sieves method)
-
-  - ACW-t(S)-eff: the penalized ACW-t estimator to select sieve basis
-    that are predictive of outcome and select those terms
-
-  - ACW-b: the ACW estimator defined by with \(g\)(X) = \(g_1\)(X)and
-    the nuisance functions \(\mu_a(X), a=0, 1\) are estimated are
-    estimated based on both RCT and observational samples
-
-  - ACW-b(S): the penalized ACW-b estimator using the method of sieves
-    with \(g\)(X) = \(g_2\)(X)
-
-  - ACW-t(S)-eff: the penalized ACW-b estimator to select sieve basis
-    that are predictive of outcome and select those terms
-
-where \(g_1(X) = (X_1, X_2, X_3, X_4)^T\) and
-\(g_2(X) = (X_1, ... X_4, X_1X_2,...,X_3X_4,X_1^2,...,X_4^2)\)
-
-``` 
-
-knitr::kable(round(fit.gaussian$fit, 3), caption = 'ATE comparison for continuous outcomes') %>% kable_styling(bootstrap_options = "striped", full_width = T)
-knitr::kable(round(fit.binom$fit, 3), caption = 'ATE comparison for binary outcomes') %>% kable_styling(bootstrap_options = "striped", full_width = T)
-```
+    #>       Naive        IPSW       AIPSW          CW       ACW-t       ACW-b 
+    #> -22.9155252  -8.2966905   0.7664578  -0.3495104   0.5184023  -0.1773662

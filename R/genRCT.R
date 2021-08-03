@@ -86,8 +86,8 @@
     tau_B <- matrix(NA, nrow = n.boot, ncol = n.est)
     if(is.null(seed)) seed <- 0
 
+    cat(" Bootstrapping.. \n")
     if(verbose == TRUE) {
-      cat(" Bootstrapping.. \n")
       pb <- txtProgressBar(min = 0, max = n.boot, style = 3)
     }
     for (i in 1:n.boot){
