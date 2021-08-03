@@ -35,6 +35,7 @@
 #'    \code{hypers} \tab A list of vectors indicating the selected covariates. \cr
 #' }
 #'
+#' @export
 
 genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, family = "gaussian", estimators, sieve = TRUE,  seed = NULL,
                               osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL) {
@@ -48,10 +49,11 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
   Y.trial <- c(as.matrix(Y.trial))
   A.trial <- c(as.matrix(A.trial))
-
+  X.trial <- as.matrix(X.trial)
   dat.trial <- data.table(A = A.trial, X = X.trial)
   dat.trial$Y <- Y.trial
 
+  X.rwe <- as.matrix(X.rwe)
   if (!is.null(Y.rwe) & !is.null(A.rwe)) {
     Y.rwe <- c(as.matrix(Y.rwe))
     A.rwe <- c(as.matrix(A.rwe))
