@@ -28,12 +28,12 @@ library(genRCT)
 
 | Argument   |                                                                                                                                                                                                                                        |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Y.trial    | Observed outcome from a trial; vector of size \(n\) (the trial sample size).                                                                                                                                                           |
-| A.trial    | Treatment received from a trial; vector of size \(n\).                                                                                                                                                                                 |
-| X.trial    | Matrix of \(p\) baseline covariates from a trial; dimension \(n\) by \(p\).                                                                                                                                                            |
-| Y.rwe      | Observed outcome from OS; if obtained, vector of size \(m\) (OS sample size); otherwise, set Y.rwe = NULL.                                                                                                                             |
-| A.rwe      | Treatment received from OS; if obtained, vector of size \(m\); otherwise, set Y.rwe = NULL.                                                                                                                                            |
-| X.rwe      | Matrix of \(p\) baseline covariates from OS; dimension $m by \(p\).                                                                                                                                                                    |
+| Y.trial    | Observed outcome from a trial; vector of size n (the trial sample size).                                                                                                                                                               |
+| A.trial    | Treatment received from a trial; vector of size n.                                                                                                                                                                                     |
+| X.trial    | Matrix of p baseline covariates from a trial; dimension n by p.                                                                                                                                                                        |
+| Y.rwe      | Observed outcome from OS; if obtained, vector of size m (OS sample size); otherwise, set Y.rwe = NULL.                                                                                                                                 |
+| A.rwe      | Treatment received from OS; if obtained, vector of size m; otherwise, set Y.rwe = NULL.                                                                                                                                                |
+| X.rwe      | Matrix of p baseline covariates from OS; dimension m by p.                                                                                                                                                                             |
 | family     | The type of outcome; “gaussian” for continuous outcome or “binomial” for binary outcome. Default is “gaussian”.                                                                                                                        |
 | estimators | A vector of one or multiple methods to estimate the ATE. Allowed values are “Naive”, “IPSW”, “AIPSW”, “CW”, “ACW-t”, “ACW-b”. The “ACW-b” is allowed only when both “Y.rwe” and “A.rwe” are obtained. Default specifies all 6 methods. |
 | sieve      | A logical value indicating whether the method of sieves are used for estimating sampling score and outcome models. Used only if estimators = “AIPSW or”ACW-t" or “ACW-b”. Default is TRUE.                                             |
@@ -80,23 +80,26 @@ data("simulData")
 data.trial <- simulData %>% dplyr::filter(delta == 1)
 data.rwe <- simulData %>% dplyr::filter(delta == 0)
 
-Y.trial <- as.vector(data.trial %>% dplyr::select(Y))
-A.trial <- as.vector(data.trial %>% dplyr::select(A))
+Y.trial <- data.trial %>% dplyr::select(Y)
+A.trial <- data.trial %>% dplyr::select(A)
 X.trial <- data.trial %>% dplyr::select(X1:X5)
 
-Y.rwe <- as.vector(data.rwe %>% dplyr::select(Y))
-A.rwe <- as.vector(data.rwe %>% dplyr::select(A))
+Y.rwe <- data.rwe %>% dplyr::select(Y)
+A.rwe <- data.rwe %>% dplyr::select(A)
 X.rwe <- data.rwe %>% dplyr::select(X1:X5)
 
-fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe, family = "gaussian",
-              estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
-              inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 12345, plot.boot = TRUE, verbose = FALSE)
-#>  Fitting estimators..
+fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, 
+              X.rwe = X.rwe, family = "gaussian",
+              estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), 
+              sieve = TRUE, inference = TRUE, n.boot = 500, conf.level = 0.05, 
+              seed = 12345, plot.boot = TRUE, verbose = FALSE)
+#>  Fitting estimators.. 
+#>  Bootstrapping..
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
-    #> Total runtime : 5.421487 mins
+    #> Total runtime : 5.400111 mins
     
     fit$fit
     #>            ATE         SE      2.5%    97.5%
@@ -108,7 +111,7 @@ fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y
     #> ACW-b 27.57737  0.7093065 25.914611 28.65249
     
     truth <- 27.4
-    fit$plot + geom_vline(xintercept = truth, color = 'blue', linetype = "dashed", show.legend = T)
+    fit$plot + geom_vline(xintercept = truth, color = 'blue', linetype = "dashed")
 
 <img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" /> The
 red solid lines represent the estimated ATEs and the blue dashed lines
