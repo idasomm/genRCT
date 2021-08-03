@@ -37,8 +37,8 @@
 #' }
 #'
 #' @examples
-#' fit <- genRCT(X.trial = X.trial, X.rwe = X.rwe, A.trial = A.trial, A.rwe = A.rwe, Y.trial= Y.trial, Y.rwe = Y.rwe,
-#' family = "gaussian", estimators = c("Naive", "IPSW", "AIPSW", "CW", 'ACW-t', 'ACW-b'), sieve = TRUE,
+#' fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial,  X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
+#' family = "gaussian", estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
 #' inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 123, plot.boot = TRUE, verbose = TRUE)
 #'
 #' @export
