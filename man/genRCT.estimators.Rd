@@ -19,7 +19,8 @@ genRCT.estimators(
   osel0.t = NULL,
   osel1.b = NULL,
   osel0.b = NULL,
-  osel.ipsw = NULL
+  osel.ipsw = NULL,
+  flag.boot = FALSE
 )
 }
 \arguments{
@@ -64,6 +65,8 @@ This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Othe
 
 \item{osel.ipsw}{A vector indicating selected sampling scole model covariates for the \code{'AIPSW'} estimator.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel.ipsw = NULL}.}
+
+\item{flag.boot}{A logical value indicating whether the function estimates bootstrap sample ATEs. Default is \code{FALSE}.}
 }
 \value{
 Return a list containing:\tabular{ll}{

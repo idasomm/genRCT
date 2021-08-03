@@ -29,6 +29,8 @@
 #' This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel0.b = NULL}.
 #' @param osel.ipsw A vector indicating selected sampling scole model covariates for the \code{'AIPSW'} estimator.
 #' This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel.ipsw = NULL}.
+#' @param flag.boot A logical value indicating whether the function estimates bootstrap sample ATEs. Default is \code{FALSE}.
+#'
 #' @return Return a list containing:\tabular{ll}{
 #'    \code{ate} \tab  A vector of estimated ATEs using the selected methods. \cr
 #'    \tab \cr
@@ -38,7 +40,7 @@
 #' @export
 
 genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, family = "gaussian", estimators, sieve = TRUE,  seed = NULL,
-                              osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL) {
+                              osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL, flag.boot = FALSE) {
   # Set seed for reproducibility
   if (!is.null(seed)) set.seed(seed)
 
@@ -86,7 +88,7 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
     if (sieve == FALSE) {
 
-      if(family == 'gaussian') {
+      if (family == 'gaussian') {
         fit.t <- lm(dat.trial$Y ~ H.trial)
         beta.t <- as.numeric(coef(fit.t))
         dat.trial$Y1.t <- h1.trial %*% beta.t
@@ -109,17 +111,17 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
       if (is.null(osel1.t) | is.null(osel0.t)) {
         for(ns in 1:5) {
-          fit1.t.sv <- cv.ncvreg(designX[indA1.trial, ], dat.trial$Y[indA1.trial], penalty = 'SCAD', family = family)#, warn=FALSE)
+          fit1.t.sv <- cv.ncvreg(designX[indA1.trial, ], dat.trial$Y[indA1.trial], penalty = 'SCAD', family = family, warn=FALSE)
           beta1.t.sv <- as.numeric(coef(fit1.t.sv, s = 'lambda.min'))
           osel1.t <- union(osel1.t, which(beta1.t.sv != 0))
-          fit0.t.sv <- cv.ncvreg(designX[indA0.trial, ], dat.trial$Y[indA0.trial], penalty = 'SCAD', family = family)#, warn=FALSE)
+          fit0.t.sv <- cv.ncvreg(designX[indA0.trial, ], dat.trial$Y[indA0.trial], penalty = 'SCAD', family = family, warn=FALSE)
           beta0.t.sv <- as.numeric(coef(fit0.t.sv, s = 'lambda.min'))
           osel0.t <- union(osel0.t, which(beta0.t.sv != 0))
         }
       }
 
       #Refit the selected basis
-      if(family == 'gaussian'){
+      if (family == 'gaussian') {
         fit1.t.sv <- lm(dat.trial$Y[indA1.trial] ~ cbind(1, designX)[indA1.trial, osel1.t] - 1)
         beta1.t.sv <- as.numeric(coef(fit1.t.sv))
         dat.trial$Y1.t.sv <- gvec.trial[, osel1.t, drop = FALSE] %*% beta1.t.sv
@@ -167,19 +169,19 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
       indA1.rwe <- which(dat.rwe$A == 1)
       indA0.rwe <- which(dat.rwe$A == 0)
 
-      if(is.null(osel1.b) | is.null(osel0.b)){
-        for(ns in 1:5){
-          fit1.b.sv <- cv.ncvreg(designX[indA1.rwe, ], dat.rwe$Y[indA1.rwe], penalty = "SCAD", family = family)#, warn=FALSE)
+      if (is.null(osel1.b) | is.null(osel0.b)) {
+        for (ns in 1:5) {
+          fit1.b.sv <- cv.ncvreg(designX[indA1.rwe, ], dat.rwe$Y[indA1.rwe], penalty = "SCAD", family = family, warn=FALSE)
           beta1.b.sv <- as.numeric(coef(fit1.b.sv, s = "lambda.min"))
           osel1.b <- union(osel1.b, which(beta1.b.sv != 0))
-          fit0.b.sv <- cv.ncvreg(designX[indA0.rwe, ], dat.rwe$Y[indA0.rwe], penalty = "SCAD", family = family)#, warn=FALSE)
+          fit0.b.sv <- cv.ncvreg(designX[indA0.rwe, ], dat.rwe$Y[indA0.rwe], penalty = "SCAD", family = family, warn=FALSE)
           beta0.b.sv <- as.numeric(coef(fit0.b.sv, s = "lambda.min"))
           osel0.b <- union(osel0.b, which(beta0.b.sv != 0))
         }
       }
 
       #Refit the selected basis
-      if (family == 'gaussian'){
+      if (family == 'gaussian') {
         fit1.b.sv <- lm(dat.rwe$Y[indA1.rwe] ~ cbind(1, designX)[indA1.rwe, osel1.b] - 1)
         beta1.b.sv <- as.numeric(coef(fit1.b.sv))
         dat.trial$Y1.b.sv <- gvec.trial[, osel1.b, drop = FALSE] %*% beta1.b.sv
@@ -209,14 +211,14 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
     moms.t <- cbind(X.trial)
 
     cnt <- 0
-    while(cnt <= 50){
+    while (cnt <= 50) {
       cnt <- cnt + 1
       lam.hat <- searchZeros(matrix(rnorm(length(moment.bar) * 20, 0, 0.25), nrow = 20), lamFun, moments = X.trial, moments.bar = moment.bar)$x[1,]
-      if(!is.null(lam.hat)) break
+      if (!is.null(lam.hat)) break
     }
 
-    if(is.null(lam.hat)){
-      warning('No lam.hat solutions')
+    if (is.null(lam.hat)) {
+      if (flag.boot == FALSE) warning('No lam.hat solutions')
       lam.hat <- rep(NA, p.trial)
     }
     q.score <- exp(X.trial %*% lam.hat) / sum(exp(X.trial %*% lam.hat))
@@ -225,7 +227,7 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
   if (c("ACW-t") %in% estimators & sieve == TRUE) {
     osel.t <- union(osel1.t, osel0.t)
-    if(length(osel.t) > 1){
+    if (length(osel.t) > 1) {
       q.score <- backward.sv(osel1 = osel1.t, osel0 = osel0.t, beta1.sv = beta1.t.sv, beta0.sv = beta0.t.sv, gvec.trial = gvec.trial, gvec.rwe = gvec.rwe)
     } else {
       q.score <- 1 / n.trial
@@ -235,7 +237,7 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
   if (c("ACW-b") %in% estimators & sieve == TRUE) {
     osel.b <- union(osel1.b, osel0.b)
-    if(length(osel.b) > 1){
+    if (length(osel.b) > 1) {
       q.score <- backward.sv(osel1 = osel1.b, osel0 = osel0.b, beta1.sv = beta1.b.sv, beta0.sv = beta0.b.sv, gvec.trial = gvec.trial, gvec.rwe = gvec.rwe)
     } else {
       q.score <- 1 / n.trial
@@ -275,7 +277,7 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
 
       designX <- gvec.all[, 2:ncol(gvec.all)]
       if (is.null(osel.ipsw)) {
-        for(ns in 1:5){
+        for (ns in 1:5) {
           fit.ipsw.sv <- cv.ncvreg(designX, delta, penalty = "SCAD", family = "binomial", warn = TRUE)
           phi.hat.sv <- as.numeric(coef(fit.ipsw.sv, s = "lambda.min"))
           osel.ipsw <- union(osel.ipsw, which(phi.hat.sv != 0))

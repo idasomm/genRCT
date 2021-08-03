@@ -74,7 +74,7 @@
   cat(" Fitting estimators.. \n")
   fit <- genRCT.estimators(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
                            estimators = estimators, sieve = sieve, family = family, seed = seed,
-                           osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL)
+                           osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL, flag.boot = FALSE)
   names(fit$ate) <- estimators
 
   if (inference == FALSE) {
@@ -102,7 +102,7 @@
       fit.boot <- genRCT.estimators(Y.trial = Y1b, A.trial = A1b, X.trial = X1b, Y.rwe = Y2b, A.rwe = A2b, X.rwe = X2b,
                                     estimators = estimators, sieve = sieve, family = family, seed = seed + i,
                                     osel1.t = fit$hypers$osel1.t, osel0.t = fit$hypers$osel0.t, osel1.b = fit$hypers$osel1.b,
-                                    osel0.b = fit$hypers$osel0.b, osel.ipsw = fit$hypers$osel.ipsw)
+                                    osel0.b = fit$hypers$osel0.b, osel.ipsw = fit$hypers$osel.ipsw, flag.boot = TRUE)
       tau_B[i,] <- unlist(fit.boot$ate)
 
       if (verbose == TRUE) {
