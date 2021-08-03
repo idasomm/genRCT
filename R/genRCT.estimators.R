@@ -217,7 +217,7 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
     cnt <- 0
     while(cnt <= 50){
       cnt <- cnt + 1
-      lam.hat <- searchZeros(matrix(rnorm(length(moment.bar) * 20, 0, 0.25), nrow = 20), lamFun, moments = X.t, moments.bar = moment.bar)$x[1,]
+      lam.hat <- searchZeros(matrix(rnorm(length(moment.bar) * 20, 0, 0.25), nrow = 20), lamFun, moments = X.trial, moments.bar = moment.bar)$x[1,]
       if(!is.null(lam.hat)) break
     }
 
