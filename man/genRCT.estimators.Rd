@@ -40,29 +40,29 @@ otherwise, set \code{Y.rwe = NULL}.}
 Default is \code{"gaussian"}.}
 
 \item{estimators}{A vector of one or multiple methods to estimate the ATE. Allowed values are
-\code{"Naive"}, \code{"IPSW"}, \code{"AIPSW"}, \code{"CW"}, \code{"ACW-t"}, \code{"ACW-b"}.
-\code{"ACW-b"} is allowed only when both \code{"Y.rwe"} and \code{"A.rwe"} are obtained.
+\code{'Naive'}, \code{'IPSW'}, \code{'AIPSW'}, \code{'CW'}, \code{'ACW-t'}, \code{'ACW-b'}.
+The \code{'ACW-b'} is allowed only when both \code{Y.rwe} and \code{A.rwe} are obtained.
 Default specifies all 6 methods.}
 
 \item{sieve}{A logical value indicating whether the method of sieves are used for estimating sampling score and outcome models.
-Used only if \code{estimators = "AIPSW} or \code{"ACW-t"} or \code{"ACW-b"}. Default is \code{TRUE}.}
+Used only if \code{estimators = 'AIPSW'} or \code{'ACW-t'} or \code{'ACW-b'}. Default is \code{TRUE}.}
 
 \item{seed}{An optional integer specifying an initial randomization seed for reproducibility.
 Default is \code{NULL}, corresponding to no seed.}
 
-\item{osel1.t}{A vector indicating selected outcome model covariates for the \code{"ACW-t"} estimator in the group trt = 1.
+\item{osel1.t}{A vector indicating selected outcome model covariates for the \code{'ACW-t'} estimator in the group trt = 1.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel1.t = NULL}.}
 
-\item{osel0.t}{A vector indicating selected outcome model covariates for the \code{"ACW-t"} estimator in the group trt = 0.
+\item{osel0.t}{A vector indicating selected outcome model covariates for the \code{'ACW-t'} estimator in the group trt = 0.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel0.t = NULL}.}
 
-\item{osel1.b}{A vector indicating selected outcome model covariates for the \code{"ACW-b"} estimator in the group trt = 1.
+\item{osel1.b}{A vector indicating selected outcome model covariates for the \code{'ACW-b'} estimator in the group trt = 1.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel1.b = NULL}.}
 
-\item{osel0.b}{A vector indicating selected outcome model covariates for the \code{"ACW-b"} estimator in the group trt = 0.
+\item{osel0.b}{A vector indicating selected outcome model covariates for the \code{'ACW-b'} estimator in the group trt = 0.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel0.b = NULL}.}
 
-\item{osel.ipsw}{A vector indicating selected sampling scole model covariates for the \code{"AIPSW"} estimator.
+\item{osel.ipsw}{A vector indicating selected sampling scole model covariates for the \code{'AIPSW'} estimator.
 This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Otherwise, set \code{osel.ipsw = NULL}.}
 }
 \value{
