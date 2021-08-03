@@ -46,10 +46,15 @@ genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, fa
   colnames(ate) <- c(paste0(estimators))
   ate <- data.frame(ate)
 
+  Y.trial <- c(as.matrix(Y.trial))
+  A.trial <- c(as.matrix(A.trial))
+
   dat.trial <- data.table(A = A.trial, X = X.trial)
   dat.trial$Y <- Y.trial
 
   if (!is.null(Y.rwe) & !is.null(A.rwe)) {
+    Y.rwe <- c(as.matrix(Y.rwe))
+    A.rwe <- c(as.matrix(A.rwe))
     dat.rwe <- data.table(A = A.rwe, X = X.rwe)
     dat.rwe$Y <- Y.rwe
   } else {
