@@ -14,11 +14,11 @@
 #' @param family The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
 #' Default is \code{"gaussian"}.
 #' @param estimators A vector of one or multiple methods to estimate the ATE. Allowed values are
-#' \code{"Naive"}, \code{"IPSW"}, \code{"AIPSW"}, \code{"CW"}, \code{"ACW-t"}, \code{"ACW-b"}.
-#' The \code{"ACW-b"} is allowed only when both \code{"Y.rwe"} and \code{"A.rwe"} are obtained.
+#' \code{'Naive'}, \code{'IPSW'}, \code{'AIPSW'}, \code{'CW'}, \code{'ACW-t'}, \code{'ACW-b'}.
+#' The \code{'ACW-b'} is allowed only when both \code{Y.rwe} and \code{A.rwe} are obtained.
 #' Default specifies all 6 methods.
 #' @param sieve A logical value indicating whether the method of sieves are used for estimating sampling score and outcome models.
-#' Used only if \code{estimators = "AIPSW} or \code{"ACW-t"} or \code{"ACW-b"}. Default is \code{TRUE}.
+#' Used only if \code{estimators = 'AIPSW'} or \code{'ACW-t'} or \code{'ACW-b'}. Default is \code{TRUE}.
 #' @param inference A logical value indicating whether inference for the ATE via bootstrap should be provided.
 #' Default it \code{TRUE}.
 #' @param n.boot A numeric value indicating the number of bootstrap samples used. This is only relevant
