@@ -36,7 +36,7 @@
 #' }
 #'
 
-genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe , X.rwe, family = "gaussian", estimators, sieve = TRUE,  seed = NULL,
+genRCT.estimators <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, family = "gaussian", estimators, sieve = TRUE,  seed = NULL,
                               osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL) {
   # Set seed for reproducibility
   if (!is.null(seed)) set.seed(seed)

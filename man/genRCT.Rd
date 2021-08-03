@@ -6,11 +6,11 @@
 \usage{
 genRCT(
   Y.trial,
-  X.trial,
   A.trial,
+  X.trial,
   Y.rwe,
-  X.rwe,
   A.rwe,
+  X.rwe,
   family = "gaussian",
   estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"),
   sieve = TRUE,
@@ -25,16 +25,16 @@ genRCT(
 \arguments{
 \item{Y.trial}{Observed outcome from a trial; vector of size \code{n} (the trial sample size).}
 
-\item{X.trial}{Matrix of \code{p} baseline covariates from a trial; dimension \code{n} by \code{p}.}
-
 \item{A.trial}{Treatment received from a trial; vector of size \code{n}.}
+
+\item{X.trial}{Matrix of \code{p} baseline covariates from a trial; dimension \code{n} by \code{p}.}
 
 \item{Y.rwe}{Observed outcome from OS; if obtained, vector of size \code{m} (OS sample size);
 otherwise, set \code{Y.rwe = NULL}.}
 
-\item{X.rwe}{Matrix of \code{p} baseline covariates from OS; dimension \code{m} by \code{p}.}
-
 \item{A.rwe}{Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.}
+
+\item{X.rwe}{Matrix of \code{p} baseline covariates from OS; dimension \code{m} by \code{p}.}
 
 \item{family}{The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
 Default is \code{"gaussian"}.}
@@ -77,7 +77,7 @@ to a target population leveraging observational studies. The method of sieves ca
 The ATE can be estimated with up to 6 methods among the following: Naive, IPSW, AIPSW, CW, ACW-t, ACW-b.
 }
 \examples{
-fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial,  X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
+fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial,Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
 family = "gaussian", estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
 inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 123, plot.boot = TRUE, verbose = TRUE)
 

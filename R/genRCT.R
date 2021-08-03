@@ -5,12 +5,12 @@
 #' The ATE can be estimated with up to 6 methods among the following: Naive, IPSW, AIPSW, CW, ACW-t, ACW-b.
 #'
 #' @param Y.trial Observed outcome from a trial; vector of size \code{n} (the trial sample size).
-#' @param A.trial Treatment received from a trial; vector of size \code{n}.
 #' @param X.trial Matrix of \code{p} baseline covariates from a trial; dimension \code{n} by \code{p}.
+#' @param A.trial Treatment received from a trial; vector of size \code{n}.
 #' @param Y.rwe Observed outcome from OS; if obtained, vector of size \code{m} (OS sample size);
 #' otherwise, set \code{Y.rwe = NULL}.
-#' @param A.rwe Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.
 #' @param X.rwe Matrix of \code{p} baseline covariates from OS; dimension \code{m} by \code{p}.
+#' @param A.rwe Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.
 #' @param family The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
 #' Default is \code{"gaussian"}.
 #' @param estimators A vector of one or multiple methods to estimate the ATE. Allowed values are
@@ -37,7 +37,7 @@
 #' }
 #'
 #' @examples
-#' fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial,  X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
+#' fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial,Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
 #' family = "gaussian", estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
 #' inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 123, plot.boot = TRUE, verbose = TRUE)
 #'
@@ -51,7 +51,7 @@
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom nleqslv searchZeros
 
-'genRCT' <- function(Y.trial, X.trial, A.trial, Y.rwe, X.rwe, A.rwe,  family = "gaussian",
+'genRCT' <- function(Y.trial, A.trial, X.trial, Y.rwe, A.rwe, X.rwe, family = "gaussian",
                      estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
                      inference = TRUE, n.boot = 100, conf.level = 0.05, seed = NULL, plot.boot = TRUE, verbose = TRUE) {
 
@@ -64,7 +64,7 @@
 
   # Fit estimators
   cat(" Fitting estimators.. \n")
-  fit <- genRCT.estimators(Y.trial = Y.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.trial = A.trial, X.rwe = X.rwe, A.rwe = A.rwe,
+  fit <- genRCT.estimators(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
                            estimators = estimators, sieve = sieve, family = family, seed = seed,
                            osel1.t = NULL, osel0.t = NULL, osel1.b = NULL, osel0.b = NULL, osel.ipsw = NULL)
   names(fit$ate) <- estimators
@@ -91,10 +91,10 @@
       A2b <- A.rwe[samp2b]
       Y1b <- Y.trial[samp1b]
       Y2b <- Y.rwe[samp2b]
-      fit.boot <- genRCT.estimators(X.trial = X1b, X.rwe = X2b, A.trial = A1b, A.rwe = A2b, Y.trial = Y1b, Y.rwe = Y2b,
+      fit.boot <- genRCT.estimators(Y.trial = Y1b, A.trial = A1b, X.trial = X1b, Y.rwe = Y2b, A.rwe = A2b, X.rwe = X2b,
                                     estimators = estimators, sieve = sieve, family = family, seed = seed + i,
-                                    osel1.t = fit$hypers$osel1.t, osel0.t = fit$hypers$osel0.t, osel1.b = fit$hypers$osel1.b, osel0.b = fit$hypers$osel0.b,
-                                    osel.ipsw = fit$hypers$osel.ipsw)
+                                    osel1.t = fit$hypers$osel1.t, osel0.t = fit$hypers$osel0.t, osel1.b = fit$hypers$osel1.b,
+                                    osel0.b = fit$hypers$osel0.b, osel.ipsw = fit$hypers$osel.ipsw)
       tau_B[i,] <- unlist(fit.boot$ate)
 
       if (verbose == TRUE) {
