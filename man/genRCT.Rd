@@ -23,7 +23,7 @@ genRCT(
 )
 }
 \arguments{
-\item{Y.trial}{Observed outcome from a trial; vector of size \code{n} (the trial sample size).}
+\item{Y.trial}{Observed outcome from a trial; vector of size \code{n} (trial sample size).}
 
 \item{A.trial}{Treatment received from a trial; vector of size \code{n}.}
 
@@ -32,11 +32,11 @@ genRCT(
 \item{Y.rwe}{Observed outcome from OS; if obtained, vector of size \code{m} (OS sample size);
 otherwise, set \code{Y.rwe = NULL}.}
 
-\item{A.rwe}{Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.}
+\item{A.rwe}{Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{A.rwe = NULL}.}
 
 \item{X.rwe}{Matrix of \code{p} baseline covariates from OS; dimension \code{m} by \code{p}.}
 
-\item{family}{The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
+\item{family}{The type of outcome; \code{'gaussian'} for gaussian regression or \code{'binomial'} for logistic regression.
 Default is \code{"gaussian"}.}
 
 \item{estimators}{A vector of one or multiple methods to estimate the ATE. Allowed values are
@@ -65,9 +65,9 @@ Default is \code{TRUE}.}
 }
 \value{
 Return a list containing:\tabular{ll}{
-   \code{fit} \tab  A table of estimated ATEs with bootstrap SE and confidence interval. \cr
+   \code{fit} \tab\tab  A table of estimated ATEs with bootstrap SE and confidence interval. \cr
    \tab \cr
-   \code{plot} \tab A set of histograms displaying the distribution of the bootstrapped estimates. The red vertical reference lines
+   \code{plot} \tab\tab A set of histograms displaying the distribution of the bootstrapped estimates. The red vertical reference lines
     represent the estimated ATEs from each method. \cr
 }
 }
@@ -77,7 +77,7 @@ to a target population leveraging observational studies. The method of sieves ca
 The ATE can be estimated with up to 6 methods among the following: Naive, IPSW, AIPSW, CW, ACW-t, ACW-b.
 }
 \examples{
-fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial,Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
+fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
 family = "gaussian", estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), sieve = TRUE,
 inference = TRUE, n.boot = 500, conf.level = 0.05, seed = 123, plot.boot = TRUE, verbose = TRUE)
 

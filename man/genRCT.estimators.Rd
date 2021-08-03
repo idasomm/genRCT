@@ -24,7 +24,7 @@ genRCT.estimators(
 )
 }
 \arguments{
-\item{Y.trial}{Observed outcome from a trial; vector of size \code{n} (the trial sample size).}
+\item{Y.trial}{Observed outcome from a trial; vector of size \code{n} (trial sample size).}
 
 \item{A.trial}{Treatment received from a trial; vector of size \code{n}.}
 
@@ -33,11 +33,11 @@ genRCT.estimators(
 \item{Y.rwe}{Observed outcome from OS; if obtained, vector of size \code{m} (OS sample size);
 otherwise, set \code{Y.rwe = NULL}.}
 
-\item{A.rwe}{Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.}
+\item{A.rwe}{Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{A.rwe = NULL}.}
 
 \item{X.rwe}{Matrix of \code{p} baseline covariates from OSl; dimension \code{m} by \code{p}.}
 
-\item{family}{The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
+\item{family}{The type of outcome; \code{'gaussian'} for gaussian regression or \code{'binomial'} for logistic regression.
 Default is \code{"gaussian"}.}
 
 \item{estimators}{A vector of one or multiple methods to estimate the ATE. Allowed values are
@@ -70,9 +70,9 @@ This is only relevant when \code{sieve = TRUE} and \code{inference = TRUE}. Othe
 }
 \value{
 Return a list containing:\tabular{ll}{
-   \code{ate} \tab  A vector of estimated ATEs using the selected methods. \cr
+   \code{ate} \tab\tab  A vector of estimated ATEs using the selected methods. \cr
    \tab \cr
-   \code{hypers} \tab A list of vectors indicating the selected covariates. \cr
+   \code{hypers} \tab\tab A list of vectors indicating the selected covariates. \cr
 }
 }
 \description{

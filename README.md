@@ -28,15 +28,15 @@ library(genRCT)
 
 | Argument   |                                                                                                                                                                                                                                        |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Y.trial    | Observed outcome from a trial; vector of size n (the trial sample size).                                                                                                                                                               |
+| Y.trial    | Observed outcome from a trial; vector of size n (trial sample size).                                                                                                                                                                   |
 | A.trial    | Treatment received from a trial; vector of size n.                                                                                                                                                                                     |
 | X.trial    | Matrix of p baseline covariates from a trial; dimension n by p.                                                                                                                                                                        |
 | Y.rwe      | Observed outcome from OS; if obtained, vector of size m (OS sample size); otherwise, set Y.rwe = NULL.                                                                                                                                 |
-| A.rwe      | Treatment received from OS; if obtained, vector of size m; otherwise, set Y.rwe = NULL.                                                                                                                                                |
+| A.rwe      | Treatment received from OS; if obtained, vector of size m; otherwise, set A.rwe = NULL.                                                                                                                                                |
 | X.rwe      | Matrix of p baseline covariates from OS; dimension m by p.                                                                                                                                                                             |
-| family     | The type of outcome; “gaussian” for continuous outcome or “binomial” for binary outcome. Default is “gaussian”.                                                                                                                        |
+| family     | The type of outcome; “gaussian” for gaussian regression or “binomial” for logistic regression Default is “gaussian”.                                                                                                                   |
 | estimators | A vector of one or multiple methods to estimate the ATE. Allowed values are “Naive”, “IPSW”, “AIPSW”, “CW”, “ACW-t”, “ACW-b”. The “ACW-b” is allowed only when both “Y.rwe” and “A.rwe” are obtained. Default specifies all 6 methods. |
-| sieve      | A logical value indicating whether the method of sieves are used for estimating sampling score and outcome models. Used only if estimators = “AIPSW or”ACW-t" or “ACW-b”. Default is TRUE.                                             |
+| sieve      | A logical value indicating whether the method of sieves are used for estimating sampling score and outcome models. Used only if estimators = “AIPSW” or “ACW-t” or “ACW-b”. Default is TRUE.                                           |
 | inference  | A logical value indicating whether inference for the ATE via bootstrap should be provided. Default it TRUE.                                                                                                                            |
 | n.boot     | A numeric value indicating the number of bootstrap samples used. This is only relevant if inference = TRUE. Default is 100.                                                                                                            |
 | conf.level | The level of bootstrap confidence interval; Default is 0.05.                                                                                                                                                                           |
@@ -88,8 +88,8 @@ Y.rwe <- data.rwe %>% dplyr::select(Y)
 A.rwe <- data.rwe %>% dplyr::select(A)
 X.rwe <- data.rwe %>% dplyr::select(X1:X5)
 
-fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, 
-              X.rwe = X.rwe, family = "gaussian",
+fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, 
+              A.rwe = A.rwe, X.rwe = X.rwe, family = "gaussian",
               estimators = c("Naive", "IPSW", "AIPSW", "CW", "ACW-t", "ACW-b"), 
               sieve = TRUE, inference = TRUE, n.boot = 500, conf.level = 0.05, 
               seed = 12345, plot.boot = TRUE, verbose = FALSE)
@@ -99,7 +99,7 @@ fit <- genRCT(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y
 
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
-    #> Total runtime : 5.400111 mins
+    #> Total runtime : 5.622568 mins
     
     fit$fit
     #>            ATE         SE      2.5%    97.5%

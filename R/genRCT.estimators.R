@@ -2,14 +2,14 @@
 #'
 #' ATE estimated with Naive, IPSW, AIPSW, CW, ACW-t, ACW-b.
 #'
-#' @param Y.trial Observed outcome from a trial; vector of size \code{n} (the trial sample size).
+#' @param Y.trial Observed outcome from a trial; vector of size \code{n} (trial sample size).
 #' @param A.trial Treatment received from a trial; vector of size \code{n}.
 #' @param X.trial Matrix of \code{p} baseline covariates from a trial; dimension \code{n} by \code{p}.
 #' @param Y.rwe Observed outcome from OS; if obtained, vector of size \code{m} (OS sample size);
 #' otherwise, set \code{Y.rwe = NULL}.
-#' @param A.rwe Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{Y.rwe = NULL}.
+#' @param A.rwe Treatment received from OS; if obtained, vector of size \code{m}; otherwise, set \code{A.rwe = NULL}.
 #' @param X.rwe Matrix of \code{p} baseline covariates from OSl; dimension \code{m} by \code{p}.
-#' @param family The type of outcome; \code{"gaussian"} for continuous outcome or \code{"binomial"} for binary outcome.
+#' @param family The type of outcome; \code{'gaussian'} for gaussian regression or \code{'binomial'} for logistic regression.
 #' Default is \code{"gaussian"}.
 #' @param estimators A vector of one or multiple methods to estimate the ATE. Allowed values are
 #' \code{'Naive'}, \code{'IPSW'}, \code{'AIPSW'}, \code{'CW'}, \code{'ACW-t'}, \code{'ACW-b'}.
@@ -32,9 +32,9 @@
 #' @param flag.boot A logical value indicating whether the function estimates bootstrap sample ATEs. Default is \code{FALSE}.
 #'
 #' @return Return a list containing:\tabular{ll}{
-#'    \code{ate} \tab  A vector of estimated ATEs using the selected methods. \cr
+#'    \code{ate} \tab\tab  A vector of estimated ATEs using the selected methods. \cr
 #'    \tab \cr
-#'    \code{hypers} \tab A list of vectors indicating the selected covariates. \cr
+#'    \code{hypers} \tab\tab A list of vectors indicating the selected covariates. \cr
 #' }
 #'
 #' @export
