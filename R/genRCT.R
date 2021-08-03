@@ -62,6 +62,14 @@
     if (c("ACW-b") %in% estimators) stop("The ACW-b estimator must have A.rwe and Y.rwe.")
   }
 
+  # Change data.frame to matrix
+  Y.trial <- c(as.matrix(Y.trial))
+  A.trial <- c(as.matrix(A.trial))
+  X.trial <- as.matrix(X.trial)
+  X.rwe <- as.matrix(X.rwe)
+  if (!is.null(Y.rwe)) Y.rwe <- c(as.matrix(Y.rwe))
+  if (!is.null(A.rwe)) A.rwe <- c(as.matrix(A.rwe))
+
   # Fit estimators
   cat(" Fitting estimators.. \n")
   fit <- genRCT.estimators(Y.trial = Y.trial, A.trial = A.trial, X.trial = X.trial, Y.rwe = Y.rwe, A.rwe = A.rwe, X.rwe = X.rwe,
