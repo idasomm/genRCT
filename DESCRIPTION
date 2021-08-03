@@ -1,0 +1,20 @@
+Package: genRCT
+Type: Package
+Title: Generalizing the average treatment effect (ATE) from the trial using observational studies (OS)
+Version: 0.1.0
+Author: Dasom Lee
+Maintainer: Dasom Lee <dlee31@ncsu.edu>
+Description: Provides estimation and inference for the average treatment effect (ATE), generalizing from a randomized controlled trial (RCT) to a target population leveraging observational studies. 
+  The method of sieves can be used for the estimation of sampling score and outcome models.
+  The ATE can be estimated with up to 6 methods among the following: Naive, IPSW, AIPSW, CW, ACW-t, ACW-b.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
+Imports:
+  data.table,
+  ncvreg,
+  tidyverse,
+  nleqslv
