@@ -126,7 +126,7 @@
       ate.df <- ate.df %>% gather(key = "Estimators", value = "ATE") %>% mutate(Estimators = factor(Estimators, levels = estimators))
       df <- data.frame(tau_B)
       colnames(df) <- estimators
-      p1 <- df %>% gather(key = "Estimators", value = "ATE") %>% mutate(Estimators = factor(Estimators, levels = estimators)) %>%
+      p1 <- df %>% gather(key = "Estimators", value = "ATE") %>% na.omit() %>% mutate(Estimators = factor(Estimators, levels = estimators)) %>%
               ggplot(aes(x = ATE)) + geom_histogram(bins = 30, alpha = 0.7) + facet_wrap(. ~ Estimators, scales = "free") +
               geom_vline(data = ate.df, aes(xintercept = ATE), color = "red") +
               labs(x = "Bootstrap values", y = "Frequency", title = paste0(n.boot, " bootstrap iterations")) +
@@ -137,9 +137,7 @@
 
     t.end <- Sys.time()
     t.diff <- difftime(t.end, t.start)
-    if(verbose == TRUE) {
-      cat('Total runtime :',as.numeric(t.diff), attributes(t.diff)$units, '\n')
-    }
+    cat('Total runtime :',as.numeric(t.diff), attributes(t.diff)$units, '\n')
 
     return(result)
   } # end of if(inference == FALSE) {} else {}
