@@ -6,8 +6,7 @@
 ### Installation
 
 ``` r
-devtools::install_github("idasomm/genRCT", 
-                         auth_token = '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')
+devtools::install_github("idasomm/genRCT")
 ```
 
 ### Usage
