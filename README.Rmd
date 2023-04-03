@@ -119,7 +119,7 @@ library(tidyverse)
 
 data.trial <- simulData.surv$trial
 Y.trial <- data.trial %>% dplyr::select(Y)
-d.trial <- data.trial %>% dplyr::select(d)
+d.trial <- data.trial$d
 A.trial <- data.trial %>% dplyr::select(A)
 X.trial <- data.trial %>% dplyr::select(X1:X3)
 
