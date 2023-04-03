@@ -305,59 +305,6 @@
 
 
 
-
-'generate.survWeib.dep' <- function(rho, X, lambda, beta, XC, lambdaC, betaC, tmax) {
-
-  if(!is.matrix(X)) X <- matrix(X, ncol = 1)
-  n <- nrow(X)
-  u <- runif(n)
-  Tlat <- (-log(u) / (lambda * exp(X %*% beta)))^(1/rho)
-
-  # censoring times
-  #C <- rexp(n) * exp(- rateC)
-  #C <- rexp(n, rate = rateC)
-  u <- runif(n)
-  C <- (-log(u) / (lambdaC * exp(XC %*% betaC)))^(1/rho)
-  C <- pmin(C, tmax)
-
-  # follow-up times and event indicators
-  time <- pmin(Tlat, C)
-  status <- as.numeric(Tlat <= C)
-
-  cat('# Proportion of censoring','\n')
-  print(mean(1 - status))
-
-
-  # data set
-  return(data.frame(time = time, status = status, Tlat = Tlat, C = C))
-}
-
-
-'generate.survAFT' <- function(X, beta, rateC, tmax) {
-
-  if(!is.matrix(X)) X <- matrix(X, ncol = 1)
-  n <- nrow(X)
-  Tlat <- exp(X %*% beta + rnorm(n))
-
-  # censoring times
-  #C <- rexp(n) * exp(- rateC)
-  #C <- rexp(n, rate = rateC)
-  u <- runif(n)
-  C <- -log(u) / exp(-rateC)
-  C <- pmin(C, tmax)
-
-  # follow-up times and event indicators
-  time <- pmin(Tlat, C)
-  status <- as.numeric(Tlat <= C)
-
-  cat('# Proportion of censoring','\n')
-  print(mean(1 - status))
-
-  # data set
-  return(list(time = time, status = status))
-}
-
-
 'get.rmst' <- function(time, surv, tau){
 
   time <- round(time, 5)

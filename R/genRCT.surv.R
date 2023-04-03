@@ -23,8 +23,9 @@
 #' }
 #'
 #' @examples
-#' fit <- genRCT.surv(Y.trial = Y.trial, d.trial = d.troial, A.trial = A.trial, X.trial = X.trial, X.rwe = X.rwe,
+#' fit <- genRCT.surv(Y.trial = Y.trial, d.trial = d.trial, A.trial = A.trial, X.trial = X.trial, X.rwe = X.rwe,
 #' tau = tau. n.boot = 100, conf.level = 0.05, seed = 123, verbose = TRUE)
+#' @export
 
 'genRCT.surv' <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec = c(0,0.001,0.005),
                           n.boot = 100, conf.level = 0.05, seed = NULL, verbose = TRUE) {

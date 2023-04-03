@@ -24,9 +24,7 @@ knitr::opts_chunk$set(
 
 ### Installation
 ```{r, eval = FALSE}
-devtools::install_github("idasomm/genRCT", 
-                         auth_token = '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')
-
+devtools::install_github("idasomm/genRCT")
 ```
 
 
@@ -72,7 +70,7 @@ Value  |
 fit	|  A table of estimated ATEs with bootstrap SE and confidence interval.
 plot | A set of histograms displaying the distribution of the bootstrapped estimates. The red vertical reference lines represent the estimated ATEs from each method.
 
-### Example
+### Example - gaussian
 
 ```{r}
 
@@ -112,6 +110,101 @@ truth - fit$fit[ ,1]
 ```
 
 
+### Example - survival
+```{r}
 
+data("simulData.surv")
+library(tidyverse)
+
+
+data.trial <- simulData.surv$trial
+Y.trial <- data.trial %>% dplyr::select(Y)
+d.trial <- data.trial %>% dplyr::select(d)
+A.trial <- data.trial %>% dplyr::select(A)
+X.trial <- data.trial %>% dplyr::select(X1:X3)
+
+X.rwe <- simulData$rwe
+
+
+tau <- seq(10, 50, by = 10)
+tau <- round(tau)
+
+
+
+library(pracma)
+library(ggplot2)
+library(survival)
+library(data.table)
+library(nleqslv)
+library(ncvreg)
+library(MASS)
+library(Matrix)
+
+
+## Fit genRCT survival
+fit <- genRCT.surv(Y.trial = Y.trial, d.trial = d.trial, A.trial = A.trial, X.trial = X.trial, X.rwe = X.rwe, 
+                   tau = tau, n.boot = 100, conf.level = 0.05, seed = 123, verbose = FALSE)
+```
+```{r echo = F}
+
+lower1 <- fit$surv$lower1
+lower0 <- fit$surv$lower0
+upper1 <- fit$surv$upper1
+upper0 <- fit$surv$upper0
+
+sv1 <- as.data.frame(fit$surv$surv1) %>% mutate(est = 's1', time = fit$surv$time1)
+sv0 <- as.data.frame(fit$surv$surv0) %>% mutate(est = 's0', time = fit$surv$time0)
+surv.comb <- rbind(sv1, sv0)
+
+datas <- surv.comb %>% pivot_longer(cols = c(surv.nv:denom.dacw.sv), names_to = "method", values_to = "surv") %>%
+    mutate(estimators = factor(method, levels = c("denom.nv", "surv.nv", "denom.dr", "surv.dr", "denom.or", "surv.or", "denom.ipsw", "surv.ipsw", 
+                                                  "denom.cw", "surv.cw", "denom.dacw", "surv.dacw", "denom.dacw.sv", "surv.dacw.sv"),
+                             labels = c("Naive", "Naive2", "DR", "DR2", "OR", "OR2", "IPSW", "IPSW2", "CW", "CW2", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")))
+
+lower <- data.frame(rbind(lower1, lower0)) %>% pivot_longer(cols = c(surv.nv:denom.dacw.sv), names_to = "method", values_to = "lower") %>%
+  mutate(estimators = factor(method, levels = c("denom.nv", "surv.nv", "denom.dr", "surv.dr", "denom.or", "surv.or", "denom.ipsw", "surv.ipsw", 
+                                                "denom.cw", "surv.cw", "denom.dacw", "surv.dacw", "denom.dacw.sv", "surv.dacw.sv"),
+                             labels = c("Naive", "Naive2", "DR", "DR2", "OR", "OR2", "IPSW", "IPSW2", "CW", "CW2", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")))
+
+upper <- data.frame(rbind(upper1, upper0)) %>% pivot_longer(cols = c(surv.nv:denom.dacw.sv), names_to = "method", values_to = "upper") %>%
+  mutate(estimators = factor(method, levels = c("denom.nv", "surv.nv", "denom.dr", "surv.dr", "denom.or", "surv.or", "denom.ipsw", "surv.ipsw",
+                                                "denom.cw", "surv.cw", "denom.dacw", "surv.dacw", "denom.dacw.sv", "surv.dacw.sv"),
+                             labels = c("Naive", "Naive2", "DR", "DR2", "OR", "OR2", "IPSW", "IPSW2", "CW", "CW2", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")))
+
+
+datas$lower <- lower$lower
+datas$upper <- upper$upper
+
+lower1.w <- apply(fit$surv$surv1 - 1.96 * fit$surv$se1, 2, mono.dec)
+upper1.w <- apply(fit$surv$surv1 + 1.96 * fit$surv$se1, 2, mono.dec)
+lower0.w <- apply(fit$surv$surv0 - 1.96 * fit$surv$se0, 2, mono.dec)
+upper0.w <- apply(fit$surv$surv0 + 1.96 * fit$surv$se0, 2, mono.dec)
+
+lower.w <- data.frame(rbind(lower1.w, lower0.w)) %>% pivot_longer(cols = c(surv.nv:denom.dacw.sv), names_to = "method", values_to = "lower") %>%
+  mutate(estimators = factor(method, levels = c("denom.nv", "surv.nv", "denom.dr", "surv.dr", "denom.or", "surv.or", "denom.ipsw", "surv.ipsw", 
+                                                "denom.cw", "surv.cw", "denom.dacw", "surv.dacw", "denom.dacw.sv", "surv.dacw.sv"),
+                             labels = c("Naive", "Naive2", "DR", "DR2", "OR", "OR2", "IPSW", "IPSW2", "CW", "CW2", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")))
+upper.w <- data.frame(rbind(upper1.w, upper0.w)) %>% pivot_longer(cols = c(surv.nv:denom.dacw.sv), names_to = "method", values_to = "upper") %>%
+  mutate(estimators = factor(method, levels = c("denom.nv", "surv.nv", "denom.dr", "surv.dr", "denom.or", "surv.or", "denom.ipsw", "surv.ipsw",
+                                                "denom.cw", "surv.cw", "denom.dacw", "surv.dacw", "denom.dacw.sv", "surv.dacw.sv"),
+                             labels = c("Naive", "Naive2", "DR", "DR2", "OR", "OR2", "IPSW", "IPSW2", "CW", "CW2", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")))
+datas$lower <- lower.w$lower
+datas$upper <- upper.w$upper
+
+datas %>% filter(estimators %in% c("Naive", "DR", "OR", "IPSW", "CW", "ACW1", "ACW2", "ACW1(S)", "ACW2(S)")) %>%
+  #filter(estimators %in% c("Naive2", "DR2", "OR2", "IPSW2", "CW2", "ACW", "ACW2")) %>%
+  ggplot(aes(x = time)) + geom_line(aes(y = surv, color = est)) +
+  # geom_rect(data = fake.ribbon,
+  #           aes(xmin=time, xmax=time.max, ymin=lower2,
+  #               ymax=upper2, fill=est),
+  #           alpha=0.3, colour=NA) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=est),
+              alpha=0.3, colour=NA) +
+  #geom_line(aes(y = lower, color = est), linetype = "dashed") +
+  facet_wrap( ~ estimators, scales = "free", nrow=2) +
+  coord_cartesian(xlim = c(0, 30)) +
+  theme_bw()
+
+```
 
 
