@@ -123,7 +123,7 @@ d.trial <- data.trial %>% dplyr::select(d)
 A.trial <- data.trial %>% dplyr::select(A)
 X.trial <- data.trial %>% dplyr::select(X1:X3)
 
-X.rwe <- simulData$rwe
+X.rwe <- simulData.surv$rwe
 
 
 tau <- seq(10, 50, by = 10)

@@ -41,7 +41,7 @@ genRCT.surv <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec 
   # Fit estimators
   cat(" Fitting estimators.. \n")
   fit <- genRCT.surv.estimators(Y.trial = Y.trial, d.trial = d.trial, A.trial = A.trial, X.trial = X.trial, X.rwe = X.rwe, O.sel1 = NULL, O.sel0 = NULL,
-                                 C.sel1 = NULL, C.sel0 = NULL, A.sel = NULL, eta = NULL, eta.vec = eta.vec, seed = seed)
+                                C.sel1 = NULL, C.sel0 = NULL, A.sel = NULL, eta = NULL, eta.vec = eta.vec, seed = seed)
 
   time1 <- sort(Y.trial[A.trial == 1 & d.trial == 1])
   time0 <- sort(Y.trial[A.trial == 0 & d.trial == 1])
@@ -67,11 +67,11 @@ genRCT.surv <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec 
   }
   for (i in 1:n.boot){
     #samp1b <- sample(n1, replace = TRUE)
-     #sampA1 <- sample(which(A.trial == 1), replace = TRUE)
-     #sampA0 <- sample(which(A.trial == 0), replace = TRUE)
-     #samp1b <- c(sampA1, sampA0)
-     samp1b <- sample(n1, replace = TRUE)
-     samp2b <- sample(n2, replace = TRUE)
+    #sampA1 <- sample(which(A.trial == 1), replace = TRUE)
+    #sampA0 <- sample(which(A.trial == 0), replace = TRUE)
+    #samp1b <- c(sampA1, sampA0)
+    samp1b <- sample(n1, replace = TRUE)
+    samp2b <- sample(n2, replace = TRUE)
 
     #sampA1 <- balance.boots(x = X.trial, A.trial, trt = 1, rwe = FALSE)
     #sampA0 <- balance.boots(x = X.trial, A.trial, trt = 0, rwe = FALSE)
@@ -84,8 +84,8 @@ genRCT.surv <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec 
     Y1b <- Y.trial[samp1b]
     X2b <- X.rwe[samp2b, ]
     fit.boot <- try(genRCT.surv.estimators(Y.trial = Y1b, d.trial = d1b, A.trial = A1b, X.trial = X1b, X.rwe = X2b,
-                                            O.sel1 = fit$hyper$O.sel1, O.sel0 = fit$hyper$O.sel0, C.sel1 = fit$hyper$C.sel1, C.sel0 = fit$hyper$C.sel0,
-                                            A.sel = fit$hyper$A.sel, eta = fit$hyper$eta, eta.vec = eta.vec, seed = seed + i), silent = TRUE)
+                                           O.sel1 = fit$hyper$O.sel1, O.sel0 = fit$hyper$O.sel0, C.sel1 = fit$hyper$C.sel1, C.sel0 = fit$hyper$C.sel0,
+                                           A.sel = fit$hyper$A.sel, eta = fit$hyper$eta, eta.vec = eta.vec, seed = seed + i), silent = TRUE)
 
     if(inherits(fit.boot, "try-error")) next;
 

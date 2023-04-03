@@ -1,311 +1,55 @@
+expit <- function(x) {return (exp(x) / (1 + exp(x)))}
 
-est.dr <- function(y, d, x, xnew, ps) {
+logit <- function(x) {return (log(x / (1 - x)))}
 
-  xnew <- as.matrix(xnew)
-
-  # Fit coxph
-  fit <- coxph(Surv(y, d) ~ x)
-  beta <- fit$coefficients
-  risk <- c(exp(x %*% beta))
-  risk.new <- c(exp(xnew %*% beta))
-
-  base <- basehaz(fit, centered = FALSE)
-  time <- base$time
-  h0 <- base$hazard
-  dh0 <- c(h0[1], diff(h0))
-  dhazard <- outer(risk, dh0, "*")
-  dhazard.new <- outer(risk.new, dh0, "*")
-  hazard <- outer(risk, h0, "*")
-  hazard.new <- outer(risk.new, h0, "*")
-
-  # Fit probability of censoring
-  fitC <- coxph(Surv(y, 1 - d) ~ x)
-  betaC <- fitC$coefficients
-  riskC <- c(exp(x %*% betaC))
-
-  baseC <- basehaz(fitC, centered = FALSE)
-  h0C <- baseC$hazard
-  dh0C <- c(h0C[1], diff(h0C))
-  dhazardC <- outer(riskC, dh0C, "*")
-  hazardC <- outer(riskC, h0C, "*")
-
-  ## Martingale
-  # Counting process for survival time
-  y.ai <- outer(y, time, ">=")
-  dy.ai <- outer(y, time, "==")
-  dn.ai  <- dy.ai * d
-
-  # Counting process for censoring time
-  dyC.ai <- outer(y, baseC$time, "==")
-  dnC.ai  <- dyC.ai * (1 - d)
-  dmC.ai <- dnC.ai - dhazardC * y.ai
-
-  # Denominator of the robust estimator
-  denom1 <- exp(- hazard.new)
-  denom2 <- 1 / ps * y.ai * exp(hazardC)
-  denom3 <- 1 / ps * exp(- hazard)
-  argC <- t(apply(exp(hazard + hazardC) * dmC.ai, 1, cumsum))
-  denom4 <- denom3 * argC
-
-  n <- length(xnew[, 1])
-  denom <- colMeans(denom1) + colSums(denom2 - denom3 + denom4, na.rm = TRUE) / n
-  denom <- pmax(pmin(denom, 0.99), 0.01)
-
-  # Numerator of the robust estimator
-  num1 <- denom1 * dhazard.new
-  num2 <- 1 / ps * dn.ai * exp(hazardC)
-  num3 <- denom3 * dhazard
-  num4 <- num3 * argC
-  num <- colMeans(num1) + colSums(num2 - num3 + num4, na.rm = TRUE) / n
-
-  hazard.dr <- cumsum(num / denom)
-  surv.dr <- exp(- hazard.dr)
-
-  # Naive estimator
-  denom.nv <- colSums(denom2, na.rm = T) / n
-  num.nv <- colSums(num2, na.rm = T) / n
-  surv.nv <- exp(- cumsum(num.nv / denom.nv))
-
-  #time.evt <- coxph.detail(fit)$time
-  #t.idx <- time %in% time.evt
-  out <- data.frame(surv.nv = surv.nv, denom.nv = denom.nv, surv.dr = surv.dr, denom.dr = denom)
-  #out[is.nan(as.matrix(out))] <- NA
-  #out <- fill(out)
-  out <- apply(out, 2, function(x) pmax(x, 0))
-  out <- apply(out, 2, function(x) pmin(x, 1))
-  out <- apply(out, 2, function(x) mono.dec(x))
-
-  return(list(time = time, surv = out))
-}
-
-est.DACW <- function(y, d, x, xnew, wt, ipsw, ps) {
-
-  # Fit coxph
-  fit <- coxph(Surv(y, d) ~ x)
-  beta <- fit$coefficients
-  risk <- c(exp(x %*% beta))
-  risk.new <- c(exp(xnew %*% beta))
-
-  base <- basehaz(fit, centered = FALSE)
-  time <- base$time
-  h0 <- base$hazard
-  dh0 <- c(h0[1], diff(h0))
-  dhazard <- outer(risk, dh0, "*")
-  dhazard.new <- outer(risk.new, dh0, "*")
-  hazard <- outer(risk, h0, "*")
-  hazard.new <- outer(risk.new, h0, "*")
-
-  # Fit probability of censoring
-  fitC <- coxph(Surv(y, 1 - d) ~ x)
-  betaC <- fitC$coefficients
-  riskC <- c(exp(x %*% betaC))
-
-  baseC <- basehaz(fitC, centered = FALSE)
-  h0C <- baseC$hazard
-  dh0C <- c(h0C[1], diff(h0C))
-  dhazardC <- outer(riskC, dh0C, "*")
-  hazardC <- outer(riskC, h0C, "*")
-
-  index_to_grid <- unlist(lapply(y, function(x) sum(x >= base$time)))
-  wC <- exp(h0C[index_to_grid] * riskC)
-
-  ## Martingale
-  # Counting process for survival time
-  y.ai <- outer(y, time, ">=")
-  dy.ai <- outer(y, time, "==")
-  dn.ai  <- dy.ai * d
-
-  # Counting process for censoring time
-  dyC.ai <- outer(y, baseC$time, "==")
-  dnC.ai  <- dyC.ai * (1 - d)
-  dmC.ai <- dnC.ai - dhazardC * y.ai
-
-  # Normalize weights
-  wt.norm <- wt / ps
-  wt.norm <- wt.norm / sum(wt.norm)
-
-  ipsw.norm <- ipsw / ps
-  ipsw.norm <- ipsw.norm / sum(ipsw.norm)
-
-  # Denominator of the robust estimator
-  denom1 <- wt.norm * exp(hazardC) * y.ai
-  denom2 <- wt.norm * exp(- hazard)
-  denom3 <- exp(- hazard.new)
-  argC <- t(apply(exp(hazard + hazardC) * dmC.ai, 1, cumsum))
-  denom4 <- denom2 * argC
-
-  # plot(t.all, surv.true$surv1, type='l', ylim=c(0,1))
-  # lines(time, colSums(denom1), col = 2)
-  # lines(time, colSums(denom2), col = 3)
-  # lines(time, colMeans(denom3), col = 4)
-  # lines(time, colSums(denom4), col = 5)
-  #
-
-  num1 <- wt.norm * exp(hazardC) * dn.ai
-  num2 <- denom2 * dhazard
-  num3 <- denom3 * dhazard.new
-  num4 <- num2 * argC
-
-  denom <- colSums(denom1 - denom2 + denom4, na.rm = TRUE) + colMeans(denom3, na.rm = T)
-  denom <- pmax(pmin(denom, 0.99), 0.01)
-  num <- colSums(num1 - num2 + num4, na.rm = TRUE) + colMeans(num3, na.rm = T)
-  hazard.dacw <- cumsum(num / denom)
-  surv.dacw <- exp(- hazard.dacw)
-
-  # IPSW estimator
-  denom.ipsw <- colSums(ipsw.norm * exp(hazardC) * y.ai, na.rm = TRUE)
-  num.ipsw <-  colSums(ipsw.norm * exp(hazardC) * dn.ai, na.rm = TRUE)
-  surv.ipsw <- exp(- cumsum(num.ipsw / denom.ipsw))
-
-  # CW estimator
-  denom.cw <- colSums(denom1, na.rm = TRUE)
-  num.cw <- colSums(num1, na.rm = TRUE)
-  surv.cw <- exp( - cumsum(num.cw / denom.cw))
-
-  # OR estimator
-  denom.or <- colMeans(denom3, na.rm = TRUE)
-  num.or <- colMeans(num3, na.rm = TRUE)
-  surv.or <- exp( - cumsum(num.or / denom.or))
-
-  #time.evt <- coxph.detail(fit)$time
-  #t.idx <- base$time %in% time.evt
-  out <- data.frame(surv.ipsw = surv.ipsw, denom.ipsw = denom.ipsw,
-                    surv.cw = surv.cw, denom.cw = denom.cw,
-                    surv.or = surv.or, denom.or = denom.or,
-                    surv.dacw = surv.dacw, denom.dacw = denom)
-  #out[is.nan(as.matrix(out))] <- NA
-  #out <- fill(out)
-  out <- apply(out, 2, function(x) pmax(x, 0))
-  out <- apply(out, 2, function(x) pmin(x, 1))
-  out <- apply(out, 2, function(x) mono.dec(x))
-
-  return(list(time = time, surv = out))
+lamFun <- function(lam, moments, moments.bar) { ## vector lam and x
+  qi <- (exp(moments %*% lam) / sum(exp(moments %*% lam)))[, 1]
+  colSums(qi  * moments) - moments.bar
 }
 
 
-est.DACW.sv <- function(y, d, x, xnew, wt, ps, O.sel = NULL, C.sel = NULL) {
+backward.sv <- function(osel1, osel0, beta1.sv, beta0.sv, gvec.trial, gvec.rwe){
 
-  if (is.null(O.sel) & is.null(C.sel)) {
-    for(ns in 1:5) {
-      fit <- cv.ncvsurv(x, y = Surv(y, d), penalty = "SCAD", nfolds = 5)
-      beta <- as.numeric(coef(fit, s = 'lambda.min'))
-      O.sel <- union(O.sel, which(beta != 0))
-      fitC <- cv.ncvsurv(x, y = Surv(y, 1 - d), penalty = "SCAD", nfolds = 5)
-      betaC <- as.numeric(coef(fitC, s = 'lambda.min'))
-      C.sel <- union(C.sel, which(betaC != 0))
+  osel.all <- union(osel1[osel1 != 1], osel0[osel0 != 1])
+
+  moms.t <- gvec.trial[, osel.all, drop = FALSE]
+  moms <- gvec.rwe[, osel.all, drop = FALSE]
+  moms.bar <- colMeans(moms)
+  lam.hat <- searchZeros(matrix(rnorm(length(moms.bar) * 20, 0, 0.5), nrow = 20), lamFun, moments = moms.t, moments.bar = moms.bar)$x[1, ]
+  if (!is.null(lam.hat)) {
+    q.score <- exp(moms.t %*% lam.hat) / sum(exp(moms.t %*% lam.hat))
+  } else {
+    gvec.trial.new <- gvec.trial[, -1]
+    gvec.rwe.new <- gvec.rwe[, -1]
+    p.sv <- ncol(gvec.trial.new)
+
+    beta0.new <- beta1.new <- numeric(p.sv + 1)
+    beta1.new[osel1] <- abs(beta1.sv)
+    beta0.new[osel0] <- abs(beta0.sv)
+    beta.new <- pmax(beta1.new, beta0.new)[-1]
+
+    while (length(osel.all) > 1 & is.null(lam.hat)) {
+      min.beta <- min(beta.new[beta.new != 0])
+      beta.new[beta.new == min.beta] <- 0
+      osel.all <- which(beta.new != 0)
+      moms.t <- gvec.trial.new[, osel.all, drop = FALSE]
+      moms <- gvec.rwe.new[, osel.all, drop = FALSE]
+      moms.bar <- colMeans(moms)
+      lam.hat <- searchZeros(matrix(rnorm(length(moms.bar) * 20, 0, 0.5), nrow = 20), lamFun, moments = moms.t, moments.bar = moms.bar)$x[1, ]
     }
-    #tO <- table(O.sel)
-    #tC <- table(C.sel)
-    #O.sel <- unique(sort(O.sel))[which(tO >= 3)]
-    #C.sel <- unique(sort(C.sel))[which(tC >= 3)]
+
+    if (!is.null(lam.hat)) {
+      q.score <- exp(moms.t %*% lam.hat) / sum(exp(moms.t %*% lam.hat))
+    } else {
+      q.score <- 1 / nrow(gvec.trial.new)
+    }
   }
-
-
-
-  #Refit the selected basis for the Outcome coxph
-
-  if (length(O.sel) == 0) {
-    fit <- coxph(Surv(y, d) ~ 1)
-    risk <- rep(1, nrow(x))
-    risk.new <- rep(1, nrow(xnew))
-  } else {
-    fit <- coxph(Surv(y, d) ~ x[, O.sel, drop = F])
-    beta <- fit$coefficients
-    risk <- c(exp(x[, O.sel, drop = F] %*% beta))
-    risk.new <- c(exp(xnew[, O.sel, drop = F] %*% beta))
-  }
-
-
-  base <- basehaz(fit, centered = FALSE)
-  time <- base$time
-  h0 <- base$hazard
-  dh0 <- c(h0[1], diff(h0))
-  dhazard <- outer(risk, dh0, "*")
-  dhazard.new <- outer(risk.new, dh0, "*")
-  hazard <- outer(risk, h0, "*")
-  hazard.new <- outer(risk.new, h0, "*")
-
-  # ReFit probability of censoring
-  if (length(C.sel) == 0) {
-    fitC <- coxph(Surv(y, 1 - d) ~ 1)
-    riskC <- rep(1, nrow(x))
-  } else {
-    fitC <- coxph(Surv(y, 1 - d) ~ x[, C.sel, drop = F])
-    betaC <- fitC$coefficients
-    riskC <- c(exp(x[, C.sel, drop = F] %*% betaC))
-  }
-
-
-  baseC <- basehaz(fitC, centered = FALSE)
-  h0C <- baseC$hazard
-  dh0C <- c(h0C[1], diff(h0C))
-  dhazardC <- outer(riskC, dh0C, "*")
-  hazardC <- outer(riskC, h0C, "*")
-
-  index_to_grid <- unlist(lapply(y, function(x) sum(x >= base$time)))
-  wC <- exp(h0C[index_to_grid] * riskC)
-
-  ## Martingale
-  # Counting process for survival time
-  y.ai <- outer(y, time, ">=")
-  dy.ai <- outer(y, time, "==")
-  dn.ai  <- dy.ai * d
-
-  # Counting process for censoring time
-  dyC.ai <- outer(y, baseC$time, "==")
-  dnC.ai  <- dyC.ai * (1 - d)
-  dmC.ai <- dnC.ai - dhazardC * y.ai
-
-  # Normalize weights
-  wt.norm <- wt / ps
-  wt.norm <- wt.norm / sum(wt.norm)
-
-
-  # Denominator of the robust estimator
-  denom1 <- wt.norm * exp(hazardC) * y.ai
-  denom2 <- wt.norm * exp(- hazard)
-  denom3 <- exp(- hazard.new)
-  argC <- t(apply(exp(hazard + hazardC) * dmC.ai, 1, cumsum))
-  denom4 <- denom2 * argC
-  #
-
-  num1 <- wt.norm * exp(hazardC) * dn.ai
-  num2 <- denom2 * dhazard
-  num3 <- denom3 * dhazard.new
-  num4 <- num2 * argC
-
-  #denom <- mono.dec(colSums(denom1, na.rm = TRUE)) - colSums(denom2 - denom4, na.rm = TRUE) + mono.dec(colMeans(denom3, na.rm = TRUE))
-  denom <- colSums(denom1 - denom2 + denom4, na.rm = TRUE) + colMeans(denom3, na.rm = T)
-  #denom <- pmax(pmin(denom, 0.99), 0.01)
-  #denom <- mono.dec(denom)
-  num <- colSums(num1 - num2 + num4, na.rm = TRUE) + colMeans(num3, na.rm = T)
-  hazard.dacw.sv <- cumsum(num / denom)
-  surv.dacw.sv <- mono.dec(exp(- hazard.dacw.sv))
-
-  #time.evt <- coxph.detail(fit)$time
-  #t.idx <- base$time %in% time.evt
-  out <- data.frame(surv.dacw.sv = surv.dacw.sv, denom.dacw.sv = denom)
-  #out[is.nan(as.matrix(out))] <- NA
-  #out <- fill(out)
-  out <- apply(out, 2, function(x) pmax(x, 0.001))
-  out <- apply(out, 2, function(x) pmin(x, 1))
-
-  # plot(t.all, surv.true$surv1, type='n', ylim=c(0,1))
-  # lines(time[t.idx], mono.dec(colSums(denom1, na.rm=T))[t.idx], col = 2)
-  # lines(time[t.idx], mono.dec(colSums(denom2, na.rm=T))[t.idx], col = 3)
-  # lines(time[t.idx], mono.dec(colMeans(denom3,na.rm=T))[t.idx], col = 4)
-  # lines(time, colSums(denom4), col = 5)
-
-  out <- apply(out, 2, function(x) mono.dec(x))
-
-  return(list(time = time, surv = out, O.sel = O.sel, C.sel = C.sel))
-  #return(list(time = time, surv = out, O.sel = O.sel, C.sel = C.sel))
-
+  return(q.score)
 }
 
 
 
-get.rmst <- function(time, surv, tau){
+'get.rmst' <- function(time, surv, tau){
 
   time <- round(time, 5)
   tau <- round(tau, 5)
@@ -325,7 +69,7 @@ get.rmst <- function(time, surv, tau){
   return(rmst)
 }
 
-get.rmst.est <- function(fit.obj, est, tau) {
+'get.rmst.est' <- function(fit.obj, est, tau) {
   rmst1 <- get.rmst(time = fit.obj$surv1$time, surv = fit.obj$surv1[[est]], tau = tau)
   rmst0 <- get.rmst(time = fit.obj$surv0$time, surv = fit.obj$surv0[[est]], tau = tau)
   rmst <- rbind(rmst1, rmst0, rmst1 - rmst0)
@@ -334,7 +78,7 @@ get.rmst.est <- function(fit.obj, est, tau) {
 }
 
 
-rmst_to_save <- function(fit.obj, tau) {
+'rmst_to_save' <- function(fit.obj, tau) {
 
   rmst.est <- vector("list", length = 14)
   est.names <- names(fit.obj$surv1)[- 1]
@@ -354,7 +98,9 @@ rmst_to_save <- function(fit.obj, tau) {
 }
 
 
-mono.dec <- function(x) {
+
+
+'mono.dec' <- function(x) {
   x <- as.vector(x)
   xnew <- c(1, x)
   lower.mat <- outer(xnew, xnew, FUN="pmin")
@@ -364,7 +110,7 @@ mono.dec <- function(x) {
 }
 
 
-sieve.samp.2way <- function(designX, design.rwe, par0 = NULL, eta = NULL, eta.vec = c(0,0.001,0.005)){
+'sieve.samp.2way' <- function(designX, design.rwe, par0 = NULL, eta = NULL, eta.vec = c(0,0.001,0.005)){
 
   moms.bar <- colMeans(design.rwe)
   moms.t <- designX
@@ -376,7 +122,7 @@ sieve.samp.2way <- function(designX, design.rwe, par0 = NULL, eta = NULL, eta.ve
 }
 
 
-sieve.samp.q2 <- function(moms.t, moms.bar, eta = NULL, eta.vec){
+'sieve.samp.q2' <- function(moms.t, moms.bar, eta = NULL, eta.vec){
 
   par0 <- nleqslv::searchZeros(matrix(rnorm(length(moms.bar)*10,0,0.1),nrow = 10),lamFun,
                                moments = moms.t, moments.bar = moms.bar)$x[1,]
