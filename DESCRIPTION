@@ -17,4 +17,8 @@ Imports:
   data.table,
   ncvreg,
   tidyverse,
-  nleqslv
+  nleqslv,
+  ggplot2,
+  survival,
+  MASS,
+  Matrix
