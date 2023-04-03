@@ -1,5 +1,5 @@
 
-'est.dr' <- function(y, d, x, xnew, ps) {
+est.dr <- function(y, d, x, xnew, ps) {
 
   xnew <- as.matrix(xnew)
 
@@ -78,7 +78,7 @@
   return(list(time = time, surv = out))
 }
 
-'est.DACW' <- function(y, d, x, xnew, wt, ipsw, ps) {
+est.DACW <- function(y, d, x, xnew, wt, ipsw, ps) {
 
   # Fit coxph
   fit <- coxph(Surv(y, d) ~ x)
@@ -183,7 +183,7 @@
 }
 
 
-'est.DACW.sv' <- function(y, d, x, xnew, wt, ps, O.sel = NULL, C.sel = NULL) {
+est.DACW.sv <- function(y, d, x, xnew, wt, ps, O.sel = NULL, C.sel = NULL) {
 
   if (is.null(O.sel) & is.null(C.sel)) {
     for(ns in 1:5) {
@@ -305,7 +305,7 @@
 
 
 
-'get.rmst' <- function(time, surv, tau){
+get.rmst <- function(time, surv, tau){
 
   time <- round(time, 5)
   tau <- round(tau, 5)
@@ -325,7 +325,7 @@
   return(rmst)
 }
 
-'get.rmst.est' <- function(fit.obj, est, tau) {
+get.rmst.est <- function(fit.obj, est, tau) {
   rmst1 <- get.rmst(time = fit.obj$surv1$time, surv = fit.obj$surv1[[est]], tau = tau)
   rmst0 <- get.rmst(time = fit.obj$surv0$time, surv = fit.obj$surv0[[est]], tau = tau)
   rmst <- rbind(rmst1, rmst0, rmst1 - rmst0)
@@ -334,7 +334,7 @@
 }
 
 
-'rmst_to_save' <- function(fit.obj, tau) {
+rmst_to_save <- function(fit.obj, tau) {
 
   rmst.est <- vector("list", length = 14)
   est.names <- names(fit.obj$surv1)[- 1]
@@ -354,7 +354,7 @@
 }
 
 
-'mono.dec' <- function(x) {
+mono.dec <- function(x) {
   x <- as.vector(x)
   xnew <- c(1, x)
   lower.mat <- outer(xnew, xnew, FUN="pmin")
@@ -364,7 +364,7 @@
 }
 
 
-'sieve.samp.2way' <- function(designX, design.rwe, par0 = NULL, eta = NULL, eta.vec = c(0,0.001,0.005)){
+sieve.samp.2way <- function(designX, design.rwe, par0 = NULL, eta = NULL, eta.vec = c(0,0.001,0.005)){
 
   moms.bar <- colMeans(design.rwe)
   moms.t <- designX
@@ -376,7 +376,7 @@
 }
 
 
-'sieve.samp.q2' <- function(moms.t, moms.bar, eta = NULL, eta.vec){
+sieve.samp.q2 <- function(moms.t, moms.bar, eta = NULL, eta.vec){
 
   par0 <- nleqslv::searchZeros(matrix(rnorm(length(moms.bar)*10,0,0.1),nrow = 10),lamFun,
                                moments = moms.t, moments.bar = moms.bar)$x[1,]

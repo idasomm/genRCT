@@ -27,7 +27,7 @@
 #' tau = tau. n.boot = 100, conf.level = 0.05, seed = 123, verbose = TRUE)
 #' @export
 
-'genRCT.surv' <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec = c(0,0.001,0.005),
+genRCT.surv <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, tau, eta.vec = c(0,0.001,0.005),
                           n.boot = 100, conf.level = 0.05, seed = NULL, verbose = TRUE) {
 
   t.start <- Sys.time()

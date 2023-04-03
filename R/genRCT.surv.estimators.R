@@ -1,4 +1,4 @@
-'genRCT.surv.estimators' <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, O.sel1 = NULL, O.sel0 = NULL,
+genRCT.surv.estimators <- function(Y.trial, d.trial, A.trial, X.trial, X.rwe, O.sel1 = NULL, O.sel0 = NULL,
                                      C.sel1 = NULL, C.sel0 = NULL, A.sel = NULL, eta = NULL, eta.vec = eta.vec, seed) {
 
   if(!is.null(seed)) set.seed(seed)
