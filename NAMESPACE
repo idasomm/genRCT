@@ -2,6 +2,7 @@
 
 export(genRCT)
 export(genRCT.estimators)
+export(genRCT.surv)
 importFrom(data.table,data.table)
 importFrom(magrittr,"%>%")
 importFrom(ncvreg,cv.ncvreg)
