@@ -68,29 +68,26 @@ eS <- sample_prop(X.pop, 4.3)
 eS[eS >= 1] = 0.99
 S <- sapply(eS, rbinom, n = 1, size = 1)
 S.ind <- which(S == 1)
-n.trial <- length(S.ind)
-X.trial <- X[S.ind, ]
-eA <- trt_prop_RCT(X.trial) # treatment propensity score
-A.trial <- sapply(eA, rbinom, n = 1, size = 1)
-Y.1 <- generate.survWeib.dep(rho = 1, X = X.trial, lambda = lambda.1,  beta = beta.1,
-                             XC = X.trial, lambdaC = exp(- 4.5), betaC = c(-0.5, -1, -1), tmax = 400)
-Y.0 <- generate.survWeib.dep(rho = 1, X = X.trial, lambda = lambda.0,  beta = beta.0,
-                             XC = X.trial, lambdaC = exp(- 3.5), betaC = c(-0.5, -1, -1), tmax = 400)
-Y.trial <- Y.1$time * A.trial + Y.0$time* (1 - A.trial)
-d.trial <- Y.1$status * A.trial + Y.0$status* (A.trial)
+n.t <- length(S.ind)
+X.t <- X[S.ind, ]
+eA <- trt_prop_RCT(X.t) # treatment propensity score
+A.t <- sapply(eA, rbinom, n = 1, size = 1)
+
+## OS sample
+n.p <- 5000
+P.ind <- sample(50001:200000, size = n.p) ## RWD id
+X.p <- X[P.ind, ]
+
+Y.1 <- generate.survWeib.dep(rho = 1, X = X.t, lambda = lambda.1,  beta = beta.1,
+                             XC = X.t, lambdaC = exp(- 4.5), betaC = c(-0.5, -1, -1), tmax = 400)
+Y.0 <- generate.survWeib.dep(rho = 1, X = X.t, lambda = lambda.0,  beta = beta.0,
+                             XC = X.t, lambdaC = exp(- 3.5), betaC = c(-0.5, -1, -1), tmax = 400)
+Y.t <- Y.1$time * A.t + Y.0$time* (1 - A.t)
+d.t <- Y.1$status * A.t + Y.0$status* (1 - A.t)
 
 
-
-##--------------------------------------------------------------------
-## Real world data
-n.rwe <- 5000
-P.ind <- sample(50001:200000, size = n.rwe) ## RWD id
-X.rwe <- X[P.ind, ]
-
-
-
-data.trial <- data.frame(Y = Y.trial, d = d.trial, A = A.trial, X.trial)
-data.rwe <- data.frame(X.rwe)
+data.trial <- data.frame(Y = Y.t, d = d.t, A = A.t, X.t)
+data.rwe <- data.frame(X.p)
 
 simulData.surv <- vector("list", length = 2L)
 names(simulData.surv) <- c("trial", "rwe")
